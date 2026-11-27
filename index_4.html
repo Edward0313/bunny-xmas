@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>BUNNY 聖誕禮物即時持有表</title><style id="css">
+:root{--line:#f1dce5;--ink:#48434c;--muted:#827d88;--pink:#b8698b}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 system-ui,-apple-system,'Microsoft JhengHei','PingFang TC',sans-serif;background:linear-gradient(145deg,#fff5fa,#f2f9ff);color:var(--ink);min-height:100vh}
+main{max-width:1220px;margin:24px auto;padding:0 16px}
+header{text-align:center;margin-bottom:16px}
+h1{font-size:28px;margin:0;color:var(--pink);letter-spacing:.04em}
+header p{margin:4px;color:var(--muted)}
+.mode{display:inline-block;font-size:12px;border-radius:20px;padding:2px 10px;background:#edf0f7;color:#4d5266;margin-top:4px}
+.mode.ok{background:#dff3e6;color:#377a55}.mode.ro{background:#fff0e5;color:#9b5a33}
+.panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 8px 25px #d5a9ba15;margin:12px 0}
+.panel h2{font-size:16px;margin:0 0 10px;color:#965f7b}
+.row{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+.cols{display:grid;grid-template-columns:1.25fr 1fr;gap:12px}
+button{font:inherit;border:0;border-radius:10px;padding:8px 13px;cursor:pointer;background:#efb6cd;color:#513342;font-weight:650}
+button:hover{filter:brightness(.97)}
+button.secondary{background:#edf0f7;color:#4d5266}
+button.danger{background:#fde7e9;color:#ab4657}
+button.green{background:#cdeedb;color:#2f6a49}
+button:disabled{cursor:not-allowed;opacity:.45}
+input,select,textarea{font:inherit;border:1px solid #e6d4df;border-radius:9px;padding:8px;background:#fff;color:var(--ink);min-width:0}
+input[type=number]{width:76px}
+textarea{width:100%;min-height:150px;resize:vertical}
+label{font-size:13px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.stat{padding:12px;background:#fff7fb;border-radius:12px;text-align:center}
+.stat b{display:block;font-size:24px;color:#b76689}.stat small{color:var(--muted)}
+.turn{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:linear-gradient(120deg,#fff0f6,#eef4ff);border-radius:16px;padding:16px 18px}
+.turn .who{font-size:26px;font-weight:800;color:#a2567a}
+.turn .sub{color:var(--muted);font-size:14px}
+.turn .warn{color:#ab4657;font-size:13px;margin-top:4px}
+.timer{font-size:34px;font-weight:800;font-variant-numeric:tabular-nums;color:#4d5266;min-width:90px;text-align:center}
+.timer.low{color:#d0455f}.timer.out{color:#d0455f;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.35}}
+.order{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:6px}
+.order li{padding:6px 10px;border-radius:10px;background:#faf7fb;font-size:14px;display:flex;gap:6px;align-items:center}
+.order li.now{background:#ffe1ee;font-weight:700;outline:2px solid #efb6cd}
+.order li.done{color:#9aa}
+.order .n{color:#b7839b;font-size:12px;min-width:22px}
+.order .g{margin-left:auto;font-size:12px;color:#377a55}
+.help{font-size:13px;color:var(--muted);margin:8px 0 0}
+.table-wrap{overflow:auto;max-height:70vh}
+table{width:100%;border-collapse:collapse;min-width:760px}
+th,td{padding:10px 8px;text-align:left;border-bottom:1px solid #f3e5eb;vertical-align:middle}
+th{background:#fff2f7;color:#965f7b;font-size:13px;position:sticky;top:0;z-index:1}
+td:first-child{font-weight:800;color:#ad7890;white-space:nowrap}
+tr.locked{background:#f0faf3}
+tr.unopened td{color:#9a93a0}
+tr.mine{box-shadow:inset 4px 0 #efb6cd}
+.mystery{font-style:italic}
+.dots{letter-spacing:2px;white-space:nowrap}
+.pill{display:inline-flex;gap:4px;align-items:center;white-space:nowrap;border-radius:20px;padding:3px 9px;background:#fff0f6;color:#b5658c;font-size:12px}
+.pill.lock{background:#dff3e6;color:#377a55}.pill.closed{background:#f1f1f5;color:#777}
+.acts{display:flex;gap:5px;flex-wrap:wrap}.acts button{padding:5px 9px;font-size:12px}
+.log{max-height:260px;overflow:auto;padding-left:0;list-style:none;margin:0;font-size:14px}
+.log li{padding:5px 0;border-bottom:1px dotted var(--line)}
+.log time{color:#b7839b;font-size:12px;margin-right:8px;font-variant-numeric:tabular-nums}
+details summary{cursor:pointer;font-weight:700;color:#965f7b}
+.rules{width:100%;border-collapse:collapse;min-width:0;margin-top:8px;font-size:14px}
+.rules td{padding:6px 8px;border-bottom:1px solid #f6eaf0}.rules td:first-child{color:#965f7b;white-space:nowrap;font-weight:700}
+.final{background:#fffbea;border:1px solid #f3e2a6;border-radius:14px;padding:12px 14px;margin-top:10px}
+#modal{position:fixed;inset:0;background:#2a1d2655;display:flex;align-items:center;justify-content:center;z-index:9;padding:16px}
+#modal[hidden]{display:none}
+#modal .box{background:#fff;border-radius:16px;padding:18px;width:min(440px,100%);box-shadow:0 20px 50px #0003}
+#modal h3{margin:0 0 12px;color:#a2567a}
+#modal .f{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+#modal .f input,#modal .f select{width:100%}
+#modal .err{color:#ab4657;font-size:13px;min-height:18px}
+#modal .mbtn{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#493745;color:#fff;border-radius:8px;padding:9px 18px;display:none;z-index:10;max-width:90vw}
+.footer{text-align:center;color:#b7839b;font-size:12px;padding:18px}
+body.view .ctl{display:none!important}
+@media(max-width:820px){.cols{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:560px){h1{font-size:22px}.panel{padding:12px}main{padding:0 8px;margin:12px auto}.turn .who{font-size:21px}}
+</style></head><body><div id="root"></div><script id="state" type="application/json">{"v":2,"timer":30,"players":[],"turn":0,"pending":null,"noBack":{},"gifts":[],"logs":[],"undo":[],"finalDone":false,"turnAt":0}</script><script id="app">
+(()=>{'use strict';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const CSS=document.getElementById('css').textContent;
+const APP=document.getElementById('app').textContent;
+const LKEY='bunny_xmas_gifts_v2';
+const blank=()=>({v:2,timer:30,players:[],turn:0,pending:null,noBack:{},gifts:[],logs:[],undo:[],finalDone:false,turnAt:0});
+let S;try{S=Object.assign(blank(),JSON.parse(document.getElementById('state').textContent||'{}'))}catch{S=blank()}
+for(const id of['modal','toast']){if(!document.getElementById(id)){const d=document.createElement('div');d.id=id;if(id==='modal')d.hidden=true;document.body.appendChild(d)}}
+let mode='loading',busy=false,viewMode=false;
+try{viewMode=localStorage.getItem('bunny_view')==='1'}catch{}
+
+/* ---------- 平台能力：共享儲存 / 下載 ---------- */
+const waitClaude=()=>Promise.resolve(null);
+const claudeP=waitClaude();
+const artP=claudeP.then(c=>c?c.use('artifact'):null).catch(()=>null);
+const dlP=claudeP.then(c=>c?c.use('downloads'):null).catch(()=>null);
+Promise.all([claudeP,artP]).then(([c,a])=>{
+  if(a)mode='shared';
+  else if(c)mode='readonly';
+  else{mode='local';try{const s=localStorage.getItem(LKEY);if(s)S=Object.assign(blank(),JSON.parse(s))}catch{}}
+  render();
+});
+
+/* ---------- 推導 ---------- */
+const locked=g=>g.steals>=2;
+const holding=n=>S.gifts.find(g=>g.opened&&g.owner===n);
+const actor=()=>S.pending||(S.turn<S.players.length?S.players[S.turn]:null);
+const allOpened=()=>S.gifts.length>0&&S.gifts.every(g=>g.opened);
+const gameOver=()=>S.players.length>0&&!S.pending&&S.turn>=S.players.length;
+const canEdit=()=>(mode==='shared'||mode==='local')&&!busy;
+const nextId=()=>S.gifts.length?Math.max(...S.gifts.map(g=>g.id))+1:1;
+const gname=g=>g.name?`「${g.name}」`:'';
+function nextTurn(){let i=S.turn+1;while(i<S.players.length&&holding(S.players[i]))i++;S.turn=i}
+
+/* ---------- 儲存 ---------- */
+const buildDoc=()=>'<!DOCTYPE html>\n<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>BUNNY 聖誕禮物即時持有表</title><style id="css">'+CSS+'</style></head><body><div id="root"></div><script id="state" type="application/json">'+JSON.stringify(S).replace(/</g,'\\u003c')+'<'+'/script><script id="app">'+APP+'<'+'/script></body></html>';
+async function persist(){
+  render();
+  const a=await artP;
+  if(mode==='local'||!a){try{localStorage.setItem(LKEY,JSON.stringify(S))}catch{}return}
+  busy=true;render();
+  try{await a.publish(buildDoc());setTimeout(()=>{busy=false;render()},8000)}
+  catch(e){
+    busy=false;const c=String(e&&(e.code||e.message)||e);
+    if(/not_writer|not_granted/.test(c)){mode='readonly';toast('你只有觀看權限，無法修改')}
+    else if(/conflict/.test(c))toast('有人同時更新，已載入最新版本');
+    else toast('儲存失敗：'+c);
+    render();
+  }
+}
+const core=()=>{const{logs,undo,...c}=S;return JSON.parse(JSON.stringify(c))};
+function commit(label,fn){
+  if(!canEdit())return;
+  const snap=JSON.stringify(core()),before=actor();
+  const l=fn()||label;
+  if(actor()!==before)S.turnAt=Date.now();
+  S.undo.push({snap,label:l});if(S.undo.length>25)S.undo.shift();
+  S.logs.unshift({t:Date.now(),m:l});if(S.logs.length>300)S.logs.length=300;
+  persist();
+}
+function undo(){
+  if(!canEdit()||!S.undo.length)return;
+  const u=S.undo.pop();Object.assign(S,JSON.parse(u.snap));S.turnAt=Date.now();
+  S.logs.unshift({t:Date.now(),m:'↶ 復原：'+u.label});persist();toast('已復原：'+u.label);
+}
+
+/* ---------- UI 小工具 ---------- */
+function toast(s){const e=$('#toast');if(!e)return;e.textContent=s;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',2600)}
+function modal(title,body,okText,onOk,okClass){
+  const m=$('#modal');
+  m.innerHTML=`<div class="box" role="dialog" aria-modal="true"><h3>${esc(title)}</h3><div>${body}</div><div class="err" id="merr"></div><div class="mbtn"><button class="secondary" id="mc">取消</button><button class="${okClass||''}" id="mo">${esc(okText)}</button></div></div>`;
+  m.hidden=false;
+  const close=()=>{m.hidden=true;m.innerHTML=''};
+  $('#mc').onclick=close;m.onclick=e=>{if(e.target===m)close()};
+  $('#mo').onclick=()=>{const err=onOk(m);if(err){$('#merr').textContent=err;return}close()};
+  m.onkeydown=e=>{if(e.key==='Escape')close();if(e.key==='Enter'&&e.target.tagName==='INPUT'){e.preventDefault();$('#mo').click()}};
+  const f=m.querySelector('input,select,textarea');if(f){f.focus();f.select&&f.select()}else $('#mo').focus();
+}
+const confirmBox=(title,msg,ok,fn)=>modal(title,`<p>${esc(msg)}</p>`,ok,()=>{fn()},'danger');
+const field=(lab,html)=>`<div class="f"><label>${esc(lab)}</label>${html}</div>`;
+const plist=()=>`<datalist id="plist">${S.players.map(p=>`<option value="${esc(p)}">`).join('')}</datalist>`;
+const val=(m,sel)=>(m.querySelector(sel).value||'').trim();
+async function saveFile(name,data,mime){
+  const d=await dlP;
+  if(d){try{await d.save({filename:name,data});toast('已儲存 '+name)}catch(e){if(e&&e.code!=='declined')toast('無法下載：'+(e.code||e.message))}return}
+  const url=URL.createObjectURL(new Blob([data],{type:mime})),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+/* ---------- 動作 ---------- */
+function openGift(g){
+  const who=actor()||'';
+  modal(`開箱 #${g.id}`,plist()+field('開箱的玩家',`<input id="m-who" list="plist" value="${esc(who)}" placeholder="玩家名稱">`)+field('主持人公開的禮物內容',`<input id="m-name" value="${esc(g.name)}" placeholder="例如：突襲券 7 張">`),'🎁 公開並登記',m=>{
+    const n=val(m,'#m-who'),c=val(m,'#m-name');
+    if(!n)return'請填寫玩家名稱';
+    const h=holding(n);if(h)return`${n} 已持有 #${h.id}，每人同時只能持有一份禮物`;
+    if(!c)return'請填寫禮物內容';
+    commit('',()=>{
+      const wasActor=n===actor();
+      g.opened=true;g.owner=n;g.name=c;g.steals=0;
+      if(S.players.length&&!S.players.includes(n))S.players.push(n);
+      if(wasActor){S.pending=null;S.noBack={};nextTurn()}
+      return`🎁 ${n} 開啟 #${g.id}：${c}`;
+    });
+  });
+}
+function stealGift(g){
+  const a=actor();const who=a&&a!==g.owner?a:'';
+  const nb=S.noBack[g.id];
+  modal(`搶奪 #${g.id}${gname(g)}`,plist()+`<p class="help" style="margin-top:0">目前持有人：<b>${esc(g.owner)}</b>　已被搶 ${g.steals} / 2 次${g.steals===1?'<br>⚠️ 這次搶奪後會<b>永久鎖定</b>':''}${nb?`<br>🚫 ${esc(nb)} 本輪不能搶回`:''}</p>`+field('搶奪者',`<input id="m-who" list="plist" value="${esc(who)}" placeholder="玩家名稱">`),'⚔️ 搶奪',m=>{
+    const n=val(m,'#m-who');
+    if(!n)return'請填寫搶奪者';
+    if(n===g.owner)return'搶奪者不能是目前持有人';
+    if(locked(g))return'此禮物已鎖定';
+    if(S.noBack[g.id]===n)return`同一輪不能立即搶回剛被拿走的禮物（${n}）`;
+    const h=holding(n);if(h)return`${n} 已持有 #${h.id}，每人同時只能持有一份禮物`;
+    commit('',()=>{
+      const victim=g.owner;g.owner=n;g.steals++;
+      if(S.players.length&&!S.players.includes(n))S.players.push(n);
+      S.noBack[g.id]=victim;
+      if(S.players.includes(victim))S.pending=victim;
+      return g.steals>=2?`🔒 ${n} 搶走 ${victim} 的 #${g.id}${gname(g)}（第 2 次，永久鎖定，歸 ${n} 所有）→ ${victim} 重新選擇`
+                        :`⚔️ ${n} 搶走 ${victim} 的 #${g.id}${gname(g)}（第 1 次）→ ${victim} 重新選擇`;
+    });
+  });
+}
+function editGift(g){
+  modal(`手動更正 #${g.id}`,plist()+field('禮物內容',`<input id="m-name" value="${esc(g.name)}">`)+field('持有人（留空＝改回未開箱）',`<input id="m-who" list="plist" value="${esc(g.owner)}">`)+field('被搶次數',`<select id="m-st">${[0,1,2].map(i=>`<option ${i===g.steals?'selected':''}>${i}</option>`).join('')}</select>`)+'<p class="help">手動更正不會推進回合，也不算一次搶奪。</p>','儲存更正',m=>{
+    const n=val(m,'#m-who'),c=val(m,'#m-name'),st=Number(m.querySelector('#m-st').value);
+    const h=n&&holding(n);if(h&&h!==g)return`${n} 已持有 #${h.id}`;
+    commit('',()=>{g.name=c;g.owner=n;g.opened=!!n;g.steals=n?st:0;return`✏️ 手動更正 #${g.id}：${c||'（未填內容）'}／持有人 ${n||'未開箱'}／被搶 ${g.steals} 次`});
+  });
+}
+function finalSwap(){
+  const p=S.players[0],mine=holding(p);
+  const opts=S.gifts.filter(g=>g.opened&&!locked(g)&&g.owner!==p);
+  if(!opts.length){toast('沒有可交換的未鎖定禮物');return}
+  modal(`${p} 的最終交換`,`<p class="help" style="margin-top:0">${esc(p)} 目前持有：${mine?`#${mine.id} ${esc(mine.name)}`:'無'}。已鎖定的禮物不能交換。</p>`+field('要交換的禮物',`<select id="m-g">${opts.map(g=>`<option value="${g.id}">#${g.id} ${esc(g.name)}（${esc(g.owner)}）</option>`).join('')}</select>`),'🔄 交換',m=>{
+    const g=S.gifts.find(x=>x.id===Number(m.querySelector('#m-g').value));if(!g)return'找不到禮物';
+    commit('',()=>{const other=g.owner;g.owner=p;if(mine)mine.owner=other;S.finalDone=true;
+      return`🔄 最終交換：${p} 用 ${mine?`#${mine.id}${gname(mine)}`:'（無）'} 交換 ${other} 的 #${g.id}${gname(g)}`});
+  });
+}
+function editPlayers(){
+  modal('玩家名單（依抽籤順序，一行一位）',`<textarea id="m-p" placeholder="YuCH&#10;大蛋&#10;小萌">${esc(S.players.join('\n'))}</textarea><p class="help">可以先照報名順序貼上，再按「🎲 隨機抽順序」。</p>`,'儲存名單',m=>{
+    const list=[...new Set(m.querySelector('#m-p').value.split('\n').map(s=>s.trim()).filter(Boolean))];
+    commit('',()=>{S.players=list;S.turn=0;S.pending=null;S.noBack={};while(S.turn<S.players.length&&holding(S.players[S.turn]))S.turn++;S.turnAt=Date.now();return`👥 更新玩家名單（${list.length} 位）`});
+  });
+}
+function shuffle(){
+  const go=()=>commit('',()=>{const a=[...S.players];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}S.players=a;S.turn=0;S.pending=null;S.noBack={};S.turnAt=Date.now();return`🎲 抽籤順序：${a.join(' → ')}`});
+  if(S.gifts.some(g=>g.opened))confirmBox('重新抽順序？','已經有禮物被開啟，重新抽順序會讓回合從第 1 位重新算起。','重新抽',go);else go();
+}
+function addGifts(n){commit('',()=>{const id=nextId();for(let i=0;i<n;i++)S.gifts.push({id:id+i,name:'',owner:'',opened:false,steals:0});return`➕ 新增 ${n} 份禮物（#${id}～#${id+n-1}）`})}
+function exportCSV(){
+  const q=x=>'"'+String(x??'').replace(/"/g,'""')+'"';
+  const rows=[['編號','禮物內容','目前持有人','被搶次數','狀態'],...S.gifts.map(g=>[g.id,g.opened?g.name:'',g.owner,g.steals,locked(g)?'已鎖定':g.opened?'已開啟':'未開箱'])];
+  saveFile('BUNNY_聖誕禮物持有表.csv','\ufeff'+rows.map(r=>r.map(q).join(',')).join('\r\n'),'text/csv');
+}
+function importJSON(file){
+  file.text().then(t=>{
+    const d=JSON.parse(t);
+    const ok=Array.isArray(d.gifts)&&d.gifts.every(g=>Number.isInteger(g.id)&&typeof g.name==='string'&&typeof g.owner==='string'&&typeof g.opened==='boolean'&&Number.isInteger(g.steals)&&g.steals>=0&&g.steals<=2);
+    if(!ok)throw 0;
+    confirmBox('匯入備份？','匯入會取代目前所有資料（可用「復原」還原）。','匯入',()=>commit('📥 匯入備份',()=>{
+      const n=Object.assign(blank(),d);const keepLogs=S.logs,keepUndo=S.undo;
+      Object.assign(S,n,{logs:Array.isArray(d.logs)?d.logs.filter(x=>x&&typeof x.m==='string'):keepLogs,undo:keepUndo});
+    }));
+  }).catch(()=>toast('備份格式不正確'));
+}
+
+/* ---------- 畫面 ---------- */
+function render(){
+  document.body.classList.toggle('view',viewMode||mode==='readonly');
+  const G=S.gifts,a=actor(),ed=canEdit();
+  const modeTag=mode==='shared'?'<span class="mode ok">● 即時同步：所有人看到同一份資料</span>':mode==='readonly'?'<span class="mode ro">👀 觀看模式（由主持人更新）</span>':mode==='local'?'<span class="mode">主持人模式：資料存在這台電腦的瀏覽器</span>':'<span class="mode">連線中…</span>';
+  let turn='';
+  if(!S.players.length)turn=`<div><div class="who">請先輸入玩家名單</div><div class="sub">輸入後可隨機抽順序，畫面會自動提示輪到誰</div></div>`;
+  else if(a){
+    const nb=Object.entries(S.noBack).filter(([,p])=>p===a).map(([id])=>'#'+id);
+    turn=`<div><div class="sub">${S.pending?'🔁 被搶走了，立即重新選擇':`第 ${S.turn+1} / ${S.players.length} 位`}</div><div class="who">輪到：${esc(a)}</div><div class="sub">可以「開箱」一份未知禮物，或「搶奪」別人未鎖定的禮物</div>${nb.length?`<div class="warn">🚫 本輪不能搶回 ${nb.join('、')}</div>`:''}</div><div style="text-align:center"><div id="timer" class="timer">--</div><button class="secondary ctl" data-act="retime" ${ed?'':'disabled'}>⏱ 重新計時</button></div>`;
+  }else{
+    const p1=S.players[0];
+    turn=`<div><div class="who">🎉 所有回合結束</div><div class="sub">${S.finalDone?'最終交換已完成，可以準備發放禮物了！':`等待第一位玩家 ${esc(p1)} 決定是否使用最終交換`}</div></div>`+(S.finalDone?'':`<div class="row ctl"><button data-act="final" ${ed?'':'disabled'}>🔄 ${esc(p1)} 最終交換</button><button class="secondary" data-act="skipfinal" ${ed?'':'disabled'}>放棄交換</button></div>`);
+  }
+  const ord=S.players.map((p,i)=>{const h=holding(p);return`<li class="${p===a?'now':i<S.turn&&p!==S.pending?'done':''}"><span class="n">${i+1}</span>${esc(p)}<span class="g">${h?'#'+h.id+(locked(h)?' 🔒':''):''}</span></li>`}).join('');
+  const rows=G.map(g=>{
+    const st=locked(g)?'<span class="pill lock">🔒 已鎖定</span>':g.opened?'<span class="pill">🎁 已開啟</span>':'<span class="pill closed">❔ 未開箱</span>';
+    let btn='';
+    if(!g.opened)btn=`<button data-act="open" data-id="${g.id}">開箱</button>`;
+    else if(!locked(g))btn=`<button data-act="steal" data-id="${g.id}">搶奪</button>`;
+    return`<tr class="${locked(g)?'locked':!g.opened?'unopened':''} ${g.opened&&g.owner===a?'mine':''}"><td>#${g.id}</td><td>${g.opened?esc(g.name)||'（未填）':'<span class="mystery">🎁 神秘禮物</span>'}</td><td>${g.opened?`<b>${esc(g.owner)}</b>`:'—'}</td><td class="dots" title="${g.steals} / 2">${'⚔️'.repeat(g.steals)}${'<span style="opacity:.25">⚔️</span>'.repeat(2-g.steals)} ${g.steals}/2</td><td>${st}</td><td class="ctl"><div class="acts">${btn}<button class="secondary" data-act="edit" data-id="${g.id}">更正</button><button class="danger" data-act="del" data-id="${g.id}">刪除</button></div></td></tr>`;
+  }).join('')||`<tr><td colspan="6" style="text-align:center;padding:28px;color:#9a93a0">還沒有禮物，請先新增 🎁</td></tr>`;
+  const logs=S.logs.slice(0,150).map(x=>`<li><time>${esc(new Date(x.t).toLocaleTimeString('zh-TW',{hour12:false}))}</time>${esc(x.m)}</li>`).join('')||'<li>尚無活動紀錄</li>';
+  const lastU=S.undo[S.undo.length-1];
+  const dis=ed?'':'disabled';
+  $('#root').innerHTML=`<main>
+<header><h1>🎄 ♡ BUNNY 聖誕禮物爭奪戰 ♡ 🎁</h1><p>即時禮物持有表 · 開箱 × 搶奪 × 被搶 2 次自動鎖定</p>${modeTag}${busy?' <span class="mode">儲存中…</span>':''}</header>
+<section class="panel"><div class="stats"><div class="stat"><b>${S.players.length}</b><small>玩家</small></div><div class="stat"><b>${G.length}</b><small>禮物總數</small></div><div class="stat"><b>${G.filter(g=>g.opened).length}</b><small>已開啟</small></div><div class="stat"><b>${G.filter(locked).length}</b><small>已鎖定</small></div><div class="stat"><b>${G.filter(g=>!g.opened).length}</b><small>未開啟</small></div></div></section>
+<section class="panel"><div class="turn">${turn}</div>${S.players.length?`<ul class="order" style="margin-top:12px">${ord}</ul>`:''}
+<div class="row ctl" style="margin-top:12px"><button class="secondary" data-act="players" ${dis}>👥 編輯玩家名單</button><button class="secondary" data-act="shuffle" ${dis||(S.players.length<2?'disabled':'')}>🎲 隨機抽順序</button><label>每次選擇時間 <input type="number" id="timerSec" min="0" max="600" value="${S.timer}" ${dis}> 秒（0＝不計時）</label></div></section>
+<section class="panel"><div class="row ctl" style="margin-bottom:10px"><label>新增數量 <input id="count" type="number" value="${Math.max(1,S.players.length-G.length)||1}" min="1" max="100" ${dis}></label><button data-act="add" ${dis}>＋ 新增禮物</button>${S.players.length>G.length?`<button class="secondary" data-act="match" ${dis}>依玩家人數補齊（${S.players.length-G.length} 份）</button>`:''}</div>
+<div class="table-wrap"><table><thead><tr><th>編號</th><th>禮物內容</th><th>目前持有人</th><th>被搶次數</th><th>狀態</th><th class="ctl">操作</th></tr></thead><tbody>${rows}</tbody></table></div>
+<p class="help ctl">流程：點「開箱」→ 填入玩家與主持人公開的內容；點「搶奪」→ 填入搶奪者，被搶的人會自動變成下一個行動者。禮物內容在開箱前不會顯示，螢幕分享也不會爆雷。</p></section>
+<div class="cols"><section class="panel"><div class="row" style="justify-content:space-between;margin-bottom:8px"><h2 style="margin:0">📜 即時活動紀錄</h2><button class="secondary ctl" data-act="undo" ${ed&&lastU?'':'disabled'} title="${lastU?esc('復原：'+lastU.label):''}">↶ 復原上一步</button></div><ul class="log">${logs}</ul></section>
+<section class="panel"><details ${G.length?'':'open'}><summary>📋 搶奪規則</summary><table class="rules"><tr><td>搶奪上限</td><td>每份禮物最多被搶 2 次</td></tr><tr><td>鎖定機制</td><td>第 2 次被搶後永久鎖定</td></tr><tr><td>搶回限制</td><td>同一輪不能立即搶回剛失去的禮物</td></tr><tr><td>補選資格</td><td>被搶的人立即重新選擇（開新禮物或搶未鎖定禮物）</td></tr><tr><td>未開啟禮物</td><td>只能選號開啟，不能先知道內容</td></tr><tr><td>每人持有</td><td>同一時間只能有一份禮物</td></tr><tr><td>選擇時間</td><td>每次 ${S.timer||'—'} 秒</td></tr><tr><td>最終交換</td><td>第一位玩家最後可交換一次（不能換已鎖定的）</td></tr><tr><td>最終獎勵</td><td>全部回合結束才真正發放</td></tr></table></details>
+<div class="row" style="margin-top:12px"><button class="secondary" data-act="csv">匯出 CSV</button><span class="ctl row"><button class="secondary" data-act="backup">備份 JSON</button><button class="secondary" data-act="restore" ${dis}>匯入備份</button><button class="danger" data-act="reset" ${dis}>全部重置</button></span>${mode!=='readonly'?`<button class="secondary" data-act="view">${viewMode?'🛠 主持模式':'👀 觀看模式'}</button>`:''}</div><input type="file" accept="application/json,.json" id="upload" hidden></section></div>
+<div class="footer">♡ WELCOME TO OUR BUNNY CHRISTMAS ♡</div></main>`;
+  tick();
+}
+function tick(){
+  const el=$('#timer');if(!el)return;
+  if(!S.timer||!S.turnAt){el.textContent='--';el.className='timer';return}
+  const left=Math.ceil(S.timer-(Date.now()-S.turnAt)/1000);
+  el.textContent=left>0?left+'s':'時間到';
+  el.className='timer'+(left<=0?' out':left<=10?' low':'');
+}
+setInterval(tick,500);
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button[data-act]');if(!b||b.disabled)return;
+  const act=b.dataset.act,g=S.gifts.find(x=>x.id===Number(b.dataset.id));
+  if(act==='csv')return exportCSV();
+  if(act==='backup')return saveFile('BUNNY_聖誕禮物備份.json',JSON.stringify({...S,undo:[]},null,2),'application/json');
+  if(act==='view'){viewMode=!viewMode;try{localStorage.setItem('bunny_view',viewMode?'1':'0')}catch{}return render()}
+  if(!canEdit())return;
+  if(act==='open'&&g)return openGift(g);
+  if(act==='steal'&&g)return stealGift(g);
+  if(act==='edit'&&g)return editGift(g);
+  if(act==='del'&&g)return confirmBox(`刪除 #${g.id}？`,'刪除後可用「復原上一步」還原。','刪除',()=>commit(`🗑 刪除 #${g.id}${gname(g)}`,()=>{S.gifts=S.gifts.filter(x=>x!==g)}));
+  if(act==='add'){const n=Math.max(1,Math.min(100,parseInt($('#count').value)||1));return addGifts(n)}
+  if(act==='match')return addGifts(S.players.length-S.gifts.length);
+  if(act==='players')return editPlayers();
+  if(act==='shuffle')return shuffle();
+  if(act==='undo')return undo();
+  if(act==='retime'){S.turnAt=Date.now();return persist()}
+  if(act==='final')return finalSwap();
+  if(act==='skipfinal')return commit(`${S.players[0]} 放棄最終交換`,()=>{S.finalDone=true});
+  if(act==='restore')return $('#upload').click();
+  if(act==='reset')return confirmBox('全部重置？','會清空玩家、禮物與紀錄。','全部重置',()=>commit('🧹 全部重置',()=>{const u=S.undo;Object.assign(S,blank(),{undo:u,logs:[]})}));
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='timerSec'&&canEdit()){const v=Math.max(0,Math.min(600,parseInt(e.target.value)||0));if(v!==S.timer)commit(`⏱ 選擇時間改為 ${v||'不計時'}${v?' 秒':''}`,()=>{S.timer=v;S.turnAt=Date.now()})}
+  if(e.target.id==='upload'){const f=e.target.files[0];e.target.value='';if(f)importJSON(f)}
+});
+render();
+})();
+</script></body></html>
